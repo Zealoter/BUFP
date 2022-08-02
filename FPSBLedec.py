@@ -272,7 +272,7 @@ if __name__ == '__main__':
     tmp = FPSBSolver(3)
     tmp.generate_tree()
     tmp.show_tree()
-    tmp.train(100000, 10000, 1000)
+    tmp.train(10000, 2000, 1000)
 
     # for _ in range(10000):
     #     tmp.flow()
