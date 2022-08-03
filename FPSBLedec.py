@@ -55,6 +55,13 @@ class FPSBSolver(object):
         now_time_str = time.strftime('%Y_%m_%d_%H_%M_%S', time.gmtime(time.time() + 8 * 60 * 60))
         self.result_file_path = ''.join([now_path_str, '/log/', self.game_name, '_', now_time_str])
 
+    def get_now_player(self, h: str) -> str:
+        tmp_h = h.split('_')
+        if len(tmp_h[-1]) % 2 == 1:
+            return 'player1'
+        else:
+            return 'player0'
+
     def get_legal_action(self, h: str) -> list:
         if h[-1] == '_':
             return ['R', 'C']
@@ -74,13 +81,6 @@ class FPSBSolver(object):
                 return []
         else:
             return []
-
-    def get_now_player(self, h: str) -> str:
-        tmp_h = h.split('_')
-        if len(tmp_h[-1]) % 2 == 1:
-            return 'player1'
-        else:
-            return 'player0'
 
     def get_utility_matrix(self, h: str, now_player: str) -> np.ndarray:
         tmp_h = h.split('_')
@@ -203,11 +203,9 @@ class FPSBSolver(object):
                     node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
                     this_node_loss = tmp_action_result * (tmp_max_result - node.action_policy)
                     if node.now_player == 'player0':
-                        self.p0_loss = self.p0_loss*p0_policy + np.sum(this_node_loss, axis=1)
+                        self.p0_loss = self.p0_loss * p0_policy + np.sum(this_node_loss, axis=1)
                     else:
-                        self.p1_loss = self.p1_loss*p1_policy - np.sum(this_node_loss, axis=1)
-
-
+                        self.p1_loss = self.p1_loss * p1_policy - np.sum(this_node_loss, axis=1)
 
             else:
                 tmp_utility_matrix = node.utility_matrix
@@ -264,6 +262,7 @@ class FPSBSolver(object):
                 self.save_model(episode)
             if episode % log_interval == 0:
                 print(episode)
+                print('loss:', np.sum(self.p0_loss + self.p1_loss) / 3)
                 self.log(episode, {'episode': episode, 'loss': np.sum(self.p0_loss + self.p1_loss) / 3})
 
 
