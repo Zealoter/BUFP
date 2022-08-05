@@ -101,7 +101,7 @@ if __name__ == '__main__':
     tmp = LeducPokerSolver(3, 'Leduc_Poker')
     tmp.generate_tree()
     # tmp.show_tree()
-    tmp.train(50000, 5000, 1000)
+    tmp.train(100000, 5000, 100)
     tmp.show_tree()
 
     # for _ in range(10000):
