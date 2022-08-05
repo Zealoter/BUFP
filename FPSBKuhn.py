@@ -8,26 +8,19 @@ from SPFP import SPFPSolver
 
 
 class LeducPokerSolver(SPFPSolver):
-    def __int__(self, prior_state, game_name):
-        super(LeducPokerSolver, self).__init__(prior_state, game_name)
+    def __int__(self, prior_state):
+        super(LeducPokerSolver, self).__init__(prior_state, 'Kuhn_Poker')
 
     def get_legal_action(self, h: str) -> list:
         if h[-1] == '_':
             return ['R', 'C']
-        elif h[-2:] == 'RR':
-            return ['F', 'C']
         elif h[-1] == 'R':
-            return ['F', 'C', 'R']
+            return ['F', 'C']
         elif h[-2:] == '_C':
             return ['C', 'R']
         elif h[-1] == 'F':
             return []
-        elif h[-1] == 'C':
-            tmp_h = h.split('_')
-            if len(tmp_h) == 2:
-                return ['_J_', '_Q_', '_K_']
-            else:
-                return []
+
         else:
             return []
 
@@ -35,46 +28,32 @@ class LeducPokerSolver(SPFPSolver):
         tmp_h = h.split('_')
         money = 1
         money = money + tmp_h[1].count('R')
-        if len(tmp_h) == 4:
-            money = money + 2 * tmp_h[3].count('R')
-
-        need_eye = 1 - 0.5 * np.eye(self.prior_state)
+        need_eye = 1 - np.eye(self.prior_state)
         if tmp_h[-1][-2:] == 'RF':
+            money = money - 1
             if now_player == 'player0':
                 return money * need_eye
             elif now_player == 'player1':
                 return (-money) * need_eye
 
         elif tmp_h[-1][-2:] == 'CC' or tmp_h[-1][-2:] == 'RC':
-            if tmp_h[2] == 'J':
-                result = np.array([
-                    [0, 0.5, 0.5],
-                    [-0.5, 0, -1],
-                    [-0.5, 1, 0]
-                ])
-            elif tmp_h[2] == 'Q':
-                result = np.array([
-                    [0, -0.5, -1],
-                    [0.5, 0, 0.5],
-                    [1, -0.5, 0]
-                ])
-            else:
-                result = np.array([
-                    [0, -1, -0.5],
-                    [1, 0, -0.5],
-                    [0.5, 0.5, 0]
-                ])
+            result = np.array([
+                [0, -1, -1],
+                [1, 0, -1],
+                [1, 1, 0]
+            ])
             return result * money
 
 
 if __name__ == '__main__':
     np.set_printoptions(precision=6, suppress=True)
-    tmp = LeducPokerSolver(3,'Leduc_Poker')
+    tmp = LeducPokerSolver(3, 'Kuhn_Poker')
     tmp.generate_tree()
     tmp.show_tree()
     tmp.train(1000, 2000, 2000)
+    print()
+    print()
     tmp.show_tree()
-
     # for _ in range(10000):
     #     tmp.flow()
     # tmp.show_tree()
