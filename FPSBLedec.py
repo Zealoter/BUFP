@@ -37,13 +37,42 @@ class LeducPokerSolver(SPFPSolver):
         money = money + tmp_h[1].count('R')
         if len(tmp_h) == 4:
             money = money + 2 * tmp_h[3].count('R')
-
         need_eye = 1 - 0.5 * np.eye(self.prior_state)
+
         if tmp_h[-1][-2:] == 'RF':
-            if now_player == 'player0':
-                return money * need_eye
-            elif now_player == 'player1':
-                return (-money) * need_eye
+            if len(tmp_h) == 4:
+                money -= 2
+            else:
+                money -= 1
+            if len(tmp_h) == 2:
+                if now_player == 'player0':
+                    return money * need_eye
+                elif now_player == 'player1':
+                    return (-money) * need_eye
+            else:
+                if tmp_h[2] == 'J':
+                    result = np.array([
+                        [0, 0.5, 0.5],
+                        [0.5, 0, 1],
+                        [0.5, 1, 0]
+                    ])
+                elif tmp_h[2] == 'Q':
+                    result = np.array([
+                        [0, 0.5, 1],
+                        [0.5, 0, 0.5],
+                        [1, 0.5, 0]
+                    ])
+                else:
+                    result = np.array([
+                        [0, 1, 0.5],
+                        [1, 0, 0.5],
+                        [0.5, 0.5, 0]
+                    ])
+
+                if now_player == 'player0':
+                    return money * result
+                elif now_player == 'player1':
+                    return (-money) * result
 
         elif tmp_h[-1][-2:] == 'CC' or tmp_h[-1][-2:] == 'RC':
             if tmp_h[2] == 'J':
@@ -69,10 +98,10 @@ class LeducPokerSolver(SPFPSolver):
 
 if __name__ == '__main__':
     np.set_printoptions(precision=6, suppress=True)
-    tmp = LeducPokerSolver(3,'Leduc_Poker')
+    tmp = LeducPokerSolver(3, 'Leduc_Poker')
     tmp.generate_tree()
-    tmp.show_tree()
-    tmp.train(1000, 2000, 2000)
+    # tmp.show_tree()
+    tmp.train(50000, 5000, 1000)
     tmp.show_tree()
 
     # for _ in range(10000):

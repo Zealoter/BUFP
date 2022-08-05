@@ -183,15 +183,18 @@ class SPFPSolver(object):
 
     def show_tree(self):
         def show_dfs(node: Node):
-            if node.son:
-                for son_name in node.son.keys():
-                    show_dfs(node.son[son_name])
-
+            if node.is_end or node.now_player == 'c':
+                pass
+            else:
                 print('node_name  :', node.h)
                 print('node_player:', node.now_player)
                 print('node_policy:')
                 print(node.action_list)
                 print(node.action_policy)
+                print()
+            if node.son:
+                for son_name in node.son.keys():
+                    show_dfs(node.son[son_name])
 
         show_dfs(self.tree_root_node)
 
