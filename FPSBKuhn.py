@@ -7,9 +7,9 @@ import numpy as np
 from SPFP import SPFPSolver
 
 
-class LeducPokerSolver(SPFPSolver):
-    def __int__(self, prior_state):
-        super(LeducPokerSolver, self).__init__(prior_state, 'Kuhn_Poker')
+class KuhnPokerSolver(SPFPSolver):
+    def __int__(self, prior_state, name, prior_preference):
+        super(KuhnPokerSolver, self).__init__(prior_state, name, prior_preference)
 
     def get_legal_action(self, h: str) -> list:
         if h[-1] == '_':
@@ -47,10 +47,10 @@ class LeducPokerSolver(SPFPSolver):
 
 if __name__ == '__main__':
     np.set_printoptions(precision=6, suppress=True)
-    tmp = LeducPokerSolver(3, 'Kuhn_Poker')
+    tmp = KuhnPokerSolver(3, 'Kuhn_Poker_conservative', {'_': [0, 'R', 0.01]})
     tmp.generate_tree()
     tmp.show_tree()
-    tmp.train(1000, 2000, 2000)
+    tmp.train(20000, 20000, 50)
     print()
     print()
     tmp.show_tree()

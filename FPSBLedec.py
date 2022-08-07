@@ -8,8 +8,8 @@ from SPFP import SPFPSolver
 
 
 class LeducPokerSolver(SPFPSolver):
-    def __int__(self, prior_state, game_name):
-        super(LeducPokerSolver, self).__init__(prior_state, game_name)
+    def __int__(self, prior_state, game_name, prior_preference):
+        super(LeducPokerSolver, self).__init__(prior_state, game_name, prior_preference)
 
     def get_legal_action(self, h: str) -> list:
         if h[-1] == '_':
@@ -98,10 +98,10 @@ class LeducPokerSolver(SPFPSolver):
 
 if __name__ == '__main__':
     np.set_printoptions(precision=6, suppress=True)
-    tmp = LeducPokerSolver(3, 'Leduc_Poker')
+    tmp = LeducPokerSolver(3, 'Leduc_Poker', {})
     tmp.generate_tree()
     # tmp.show_tree()
-    tmp.train(100000, 5000, 100)
+    tmp.train(5000, 2000, 100)
     tmp.show_tree()
 
     # for _ in range(10000):
