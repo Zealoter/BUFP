@@ -41,16 +41,16 @@ class Node(object):
 
 
 class SPFPSolver(object):
-    def __init__(self, prior_state, game_name, prior_preference):
+    def __init__(self, prior_state, game_name, prior_preference, lr=0.01, is_fix_rl=True):
         self.prior_state = prior_state
         self.tree_root_node = None
         self.train_num = 1
-        self.lr = 1
+        self.lr = lr
         self.p0_loss = 0
         self.p1_loss = 0
         self.game_name = game_name
         self.prior_preference = prior_preference
-
+        self.is_fix_rl = is_fix_rl
         now_path_str = os.getcwd()
         # 北京时间 东 8 区 +8
         now_time_str = time.strftime('%Y_%m_%d_%H_%M_%S', time.gmtime(time.time() + 8 * 60 * 60))
@@ -156,19 +156,19 @@ class SPFPSolver(object):
                     tmp_max_result = find_max_action(tmp_action_result, node.now_player)
                     this_node_loss = tmp_action_result * (tmp_max_result - node.action_policy)
                     if node.h in self.prior_preference:
-                        i_poker = self.prior_preference[node.h][0]
-                        i_action = node.action_list.index(self.prior_preference[node.h][1])
-                        i_rl = self.prior_preference[node.h][2]
-                        if tmp_max_result[i_poker, i_action]:
-                            tmp_rl = np.ones(node.prior_state)
-                            tmp_rl = tmp_rl * self.lr
-                            tmp_rl[i_poker] = tmp_rl[i_poker] * i_rl
-                            if tmp_rl[i_poker] > 1:
-                                tmp_rl[i_poker] = 1
-                            tmp_rl=tmp_rl.reshape(-1,1)
-                            node.action_policy = node.action_policy * (1 - tmp_rl) + tmp_rl * tmp_max_result
-                        else:
-                            node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
+                        i_action = node.action_list.index(self.prior_preference[node.h][0])
+                        i_rl = self.prior_preference[node.h][1]
+                        tmp_rl = np.ones(node.prior_state)
+                        tmp_rl = tmp_rl * self.lr
+
+                        for i_poker in range(self.prior_state):
+                            if tmp_max_result[i_poker, i_action]:
+                                tmp_rl[i_poker] = tmp_rl[i_poker] * i_rl
+                                if tmp_rl[i_poker] > 1:
+                                    tmp_rl[i_poker] = 1
+                        tmp_rl = tmp_rl.reshape(-1, 1)
+                        node.action_policy = node.action_policy * (1 - tmp_rl) + tmp_rl * tmp_max_result
+
                     else:
                         node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
 
@@ -195,7 +195,10 @@ class SPFPSolver(object):
         self.p1_loss = 0
         flow_dfs(self.tree_root_node, np.ones(self.prior_state), np.ones(self.prior_state), 'c')
         self.train_num += 1
-        self.lr = 1 / self.train_num
+        if self.is_fix_rl:
+            pass
+        else:
+            self.lr = 1 / self.train_num
 
     def show_tree(self):
         def show_dfs(node: Node):
