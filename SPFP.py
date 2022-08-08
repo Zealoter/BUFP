@@ -47,7 +47,9 @@ class SPFPSolver(object):
         self.train_num = 1
         self.lr = lr
         self.p0_loss = 0
+        self.p0_loss_subgame = 0
         self.p1_loss = 0
+        self.p1_loss_subgame = 0
         self.game_name = game_name
         self.prior_preference = prior_preference
         self.is_fix_rl = is_fix_rl
@@ -87,7 +89,7 @@ class SPFPSolver(object):
         self.tree_root_node = Node('_', self.prior_state, 'player0')
         self.tree_dfs(self.tree_root_node)
 
-    def flow(self):
+    def flow(self, is_train=True):
         def find_max_action(tmp_result, now_player):
             if now_player == 'player0':
                 tmp_BR = (tmp_result == np.max(tmp_result, axis=1)[:, None]).astype(int)
@@ -167,15 +169,19 @@ class SPFPSolver(object):
                                 if tmp_rl[i_poker] > 1:
                                     tmp_rl[i_poker] = 1
                         tmp_rl = tmp_rl.reshape(-1, 1)
-                        node.action_policy = node.action_policy * (1 - tmp_rl) + tmp_rl * tmp_max_result
+                        if is_train:
+                            node.action_policy = node.action_policy * (1 - tmp_rl) + tmp_rl * tmp_max_result
 
                     else:
-                        node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
+                        if is_train:
+                            node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
 
                     if node.now_player == 'player0':
                         self.p0_loss = self.p0_loss * p0_policy + np.sum(this_node_loss, axis=1)
+                        self.p0_loss_subgame = self.p0_loss_subgame + np.sum(this_node_loss, axis=1)
                     else:
                         self.p1_loss = self.p1_loss * p1_policy - np.sum(this_node_loss, axis=1)
+                        self.p1_loss_subgame = self.p1_loss_subgame - np.sum(this_node_loss, axis=1)
 
             else:
                 tmp_utility_matrix = node.utility_matrix
@@ -193,6 +199,8 @@ class SPFPSolver(object):
 
         self.p0_loss = 0
         self.p1_loss = 0
+        self.p0_loss_subgame = 0
+        self.p1_loss_subgame = 0
         flow_dfs(self.tree_root_node, np.ones(self.prior_state), np.ones(self.prior_state), 'c')
         self.train_num += 1
         if self.is_fix_rl:
@@ -239,4 +247,11 @@ class SPFPSolver(object):
             if episode % log_interval == 0:
                 print(episode)
                 print('loss:', np.sum(self.p0_loss + self.p1_loss) / 3)
-                self.log(episode, {'episode': episode, 'loss': np.sum(self.p0_loss + self.p1_loss) / 3})
+                self.log(
+                    episode,
+                    {
+                        'episode'     : episode,
+                        'loss'        : np.sum(self.p0_loss + self.p1_loss) / 3,
+                        'subgame_loss': np.sum(self.p0_loss_subgame + self.p1_loss_subgame) / 3
+                    }
+                )
