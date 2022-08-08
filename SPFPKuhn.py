@@ -47,13 +47,14 @@ class KuhnPokerSolver(SPFPSolver):
 
 if __name__ == '__main__':
     np.set_printoptions(precision=6, suppress=True)
-    tmp = KuhnPokerSolver(3, 'Kuhn_Poker_conservative', {'_': [0, 'R', 0.01]})
-    tmp.generate_tree()
-    tmp.show_tree()
-    tmp.train(20000, 20000, 50)
-    print()
-    print()
-    tmp.show_tree()
-    # for _ in range(10000):
-    #     tmp.flow()
-    # tmp.show_tree()
+    for i in range(10):
+        tmp = KuhnPokerSolver(3, 'Kuhn_Poker' + str(i), {})
+        tmp.generate_tree()
+        tmp.show_tree()
+        tmp.train(1000, 1000, 50)
+        print()
+        print()
+        tmp.show_tree()
+        # for _ in range(10000):
+        #     tmp.flow()
+        # tmp.show_tree()

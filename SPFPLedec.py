@@ -98,20 +98,29 @@ class LeducPokerSolver(SPFPSolver):
 
 if __name__ == '__main__':
     test_list = [
-        ['Leduc_Poker_aggressive_J_10', {'_': ['R', 10]}],
-        ['Leduc_Poker_aggressive_J_5', {'_': ['R', 5]}],
-        ['Leduc_Poker_aggressive_J_2', {'_': ['R', 2]}],
-        ['Leduc_Poker_normal', {}],
-        ['Leduc_Poker_conservative_2', {'_': ['C', 2]}],
-        ['Leduc_Poker_conservative_5', {'_': ['C', 5]}],
-        ['Leduc_Poker_conservative_10', {'_': ['C', 10]}],
+        # ['Leduc_Poker_aggressive_J_10', {'_': ['R', 10]}],
+        # ['Leduc_Poker_aggressive_J_5', {'_': ['R', 5]}],
+        # ['Leduc_Poker_aggressive_J_2', {'_': ['R', 2]}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}],
+        # ['Leduc_Poker_conservative_2', {'_': ['C', 2]}],
+        # ['Leduc_Poker_conservative_5', {'_': ['C', 5]}],
+        # ['Leduc_Poker_conservative_10', {'_': ['C', 10]}],
     ]
     for i_list in test_list:
         np.set_printoptions(precision=6, suppress=True)
         tmp = LeducPokerSolver(3, i_list[0], i_list[1])
         tmp.generate_tree()
         # tmp.show_tree()
-        tmp.train(5000, 10000, 200)
+        tmp.train(10000, 10000, 200)
         tmp.show_tree()
         print(tmp.tree_root_node.action_list)
         print(tmp.tree_root_node.action_policy)

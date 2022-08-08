@@ -41,7 +41,7 @@ class Node(object):
 
 
 class SPFPSolver(object):
-    def __init__(self, prior_state, game_name, prior_preference, lr=0.01, is_fix_rl=True):
+    def __init__(self, prior_state, game_name, prior_preference, lr=1, is_fix_rl=False):
         self.prior_state = prior_state
         self.tree_root_node = None
         self.train_num = 1
