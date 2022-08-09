@@ -4,12 +4,12 @@
 # @E-mail: 18672750887@163.com
 """
 import numpy as np
-from SPFP import SPFPSolver
+from XFP import XFPSolver
 
 
-class KuhnPokerSolver(SPFPSolver):
-    def __int__(self, prior_state, name, prior_preference):
-        super(KuhnPokerSolver, self).__init__(prior_state, name, prior_preference)
+class KuhnPokerSolver(XFPSolver):
+    def __int__(self, prior_state, game_name, prior_preference):
+        super(KuhnPokerSolver, self).__init__(prior_state, game_name, prior_preference)
 
     def get_legal_action(self, h: str) -> list:
         if h[-1] == '_':
@@ -46,12 +46,18 @@ class KuhnPokerSolver(SPFPSolver):
 
 
 if __name__ == '__main__':
-    np.set_printoptions(precision=6, suppress=True)
+    test_list = [
+        ['Kuhn_Poker', {}]
+    ]
+    for i_list in test_list:
+        np.set_printoptions(precision=6, suppress=True)
+        tmp = KuhnPokerSolver(3, i_list[0], i_list[1])
+        tmp.generate_tree()
+        tmp.train(1000, 200, 200)
+        tmp.show_tree()
+        print(tmp.tree_root_node.action_list)
+        print(tmp.tree_root_node.action_policy)
 
-    tmp = KuhnPokerSolver(3, 'Kuhn_Poker_C', {'_': ['C', 10]})
-    tmp.generate_tree()
-    tmp.show_tree()
-    tmp.train(2000, 1000, 50)
-    print()
-    print()
-    tmp.show_tree()
+        # for _ in range(10000):
+    #     tmp.flow()
+    # tmp.show_tree()

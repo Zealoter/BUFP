@@ -40,7 +40,7 @@ class Node(object):
         self.is_end = True
 
 
-class SPFPSolver(object):
+class XFPSolver(object):
     def __init__(self, prior_state, game_name, prior_preference, lr=1, is_fix_rl=False):
         self.prior_state = prior_state
         self.tree_root_node = None
@@ -56,7 +56,7 @@ class SPFPSolver(object):
         now_path_str = os.getcwd()
         # 北京时间 东 8 区 +8
         now_time_str = time.strftime('%Y_%m_%d_%H_%M_%S', time.gmtime(time.time() + 8 * 60 * 60))
-        self.result_file_path = ''.join([now_path_str, '/log/', self.game_name, '_', now_time_str])
+        self.result_file_path = ''.join([now_path_str, '/log_XFP/', self.game_name, '_', now_time_str])
 
     def get_now_player(self, h: str) -> str:
         tmp_h = h.split('_')
@@ -106,14 +106,14 @@ class SPFPSolver(object):
                 if node.now_player == 'player0':
                     tmp_action_result, tmp_utility_matrix = flow_dfs(
                         node.son[node.action_list[0]],
-                        node.action_policy[:, 0],
+                        node.action_policy[:, 0] * p0_policy,
                         p1_policy,
                         node.now_player
                     )
                     for i_son_name in range(1, len(node.action_list)):
                         tmp_p0_result, tmp_p1_matrix = flow_dfs(
                             node.son[node.action_list[i_son_name]],
-                            node.action_policy[:, i_son_name],
+                            node.action_policy[:, i_son_name] * p0_policy,
                             p1_policy,
                             node.now_player
                         )
@@ -124,14 +124,14 @@ class SPFPSolver(object):
                     tmp_action_result, tmp_utility_matrix = flow_dfs(
                         node.son[node.action_list[0]],
                         p0_policy,
-                        node.action_policy[:, 0],
+                        node.action_policy[:, 0] * p1_policy,
                         node.now_player,
                     )
                     for i_son_name in range(1, len(node.action_list)):
                         tmp_p1_result, tmp_p0_matrix = flow_dfs(
                             node.son[node.action_list[i_son_name]],
                             p0_policy,
-                            node.action_policy[:, i_son_name],
+                            node.action_policy[:, i_son_name] * p1_policy,
                             node.now_player
                         )
                         tmp_utility_matrix += tmp_p0_matrix
@@ -145,37 +145,25 @@ class SPFPSolver(object):
                         node.now_player
                     )
                     for i_son_name in range(1, len(node.action_list)):
-                        tmp_p1_result, tmp_p0_matrix = flow_dfs(
+                        tmp_result, tmp_matrix = flow_dfs(
                             node.son[node.action_list[i_son_name]],
                             p0_policy,
                             p1_policy,
                             node.now_player
                         )
-                        tmp_utility_matrix += tmp_p0_matrix
+                        tmp_utility_matrix += tmp_matrix
 
                 # change policy
                 if node.now_player != 'c':
-                    tmp_max_result = find_max_action(tmp_action_result, node.now_player)
-                    this_node_loss = tmp_action_result * (tmp_max_result - node.action_policy)
-                    if node.h in self.prior_preference:
-                        i_action = node.action_list.index(self.prior_preference[node.h][0])
-                        i_rl = self.prior_preference[node.h][1]
-                        tmp_rl = np.ones(node.prior_state)
-                        tmp_rl = tmp_rl * self.lr
-
-                        for i_poker in range(self.prior_state):
-                            if tmp_max_result[i_poker, i_action]:
-                                tmp_rl[i_poker] = tmp_rl[i_poker] * i_rl
-                                if tmp_rl[i_poker] > 1:
-                                    tmp_rl[i_poker] = 1
-                        tmp_rl = tmp_rl.reshape(-1, 1)
-                        if is_train:
-                            node.action_policy = node.action_policy * (1 - tmp_rl) + tmp_rl * tmp_max_result
-
+                    if node.h=='_CR':
+                        tmp_max_result = find_max_action(tmp_action_result / (self.tree_root_node.action_policy*node.action_policy + 0.00000000001),
+                                                         node.now_player)
                     else:
-                        if is_train:
-                            node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
+                        tmp_max_result = find_max_action(tmp_action_result/(node.action_policy+0.00000000001), node.now_player)
+                    this_node_loss = tmp_action_result * (tmp_max_result - node.action_policy)
 
+                    if is_train:
+                        node.action_policy = node.action_policy * (1 - self.lr) + self.lr * tmp_max_result
                     if node.now_player == 'player0':
                         self.p0_loss = self.p0_loss * p0_policy + np.sum(this_node_loss, axis=1)
                         self.p0_loss_subgame = self.p0_loss_subgame + np.sum(this_node_loss, axis=1)
@@ -184,15 +172,16 @@ class SPFPSolver(object):
                         self.p1_loss_subgame = self.p1_loss_subgame - np.sum(this_node_loss, axis=1)
 
             else:
-                tmp_utility_matrix = node.utility_matrix
+                tmp_utility_matrix = np.multiply(p0_policy.reshape(-1, 1), node.utility_matrix)
+                tmp_utility_matrix = np.multiply(tmp_utility_matrix, p1_policy.reshape(1, -1))
 
             if father_player == 'player0':
-                p0_result = np.matmul(tmp_utility_matrix, p1_policy.reshape(self.prior_state, 1))
-                p1_matrix = p0_policy.reshape((self.prior_state, 1)) * tmp_utility_matrix
+                p0_result = np.sum(tmp_utility_matrix, axis=1).reshape(-1, 1)
+                p1_matrix = tmp_utility_matrix
                 return p0_result, p1_matrix
             elif father_player == 'player1':
-                p1_result = np.matmul(p0_policy, tmp_utility_matrix)
-                p0_matrix = p1_policy * tmp_utility_matrix
+                p1_result = np.sum(tmp_utility_matrix, axis=0).reshape(-1, 1)
+                p0_matrix = tmp_utility_matrix
                 return p1_result.reshape((self.prior_state, 1)), p0_matrix
             else:
                 return 0, tmp_utility_matrix
@@ -210,7 +199,7 @@ class SPFPSolver(object):
 
     def show_tree(self):
         def show_dfs(node: Node):
-            if node.is_end:
+            if node.is_end or node.now_player == 'c':
                 pass
             else:
                 print('node_name  :', node.h)
@@ -252,7 +241,6 @@ class SPFPSolver(object):
                     {
                         'episode'     : episode,
                         'loss'        : np.sum(self.p0_loss + self.p1_loss) / 3,
-                        'subgame_loss': np.sum(self.p0_loss_subgame + self.p1_loss_subgame) / 3,
-                        'R_or_C'      : np.sum(self.tree_root_node.action_policy[:, 0]),
+                        'subgame_loss': np.sum(self.p0_loss_subgame + self.p1_loss_subgame) / 3
                     }
                 )

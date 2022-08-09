@@ -1,10 +1,11 @@
 """
 # @Author: JuQi
-# @Time  : 2022/7/26 14:55
+# @Time  : 2022/8/8 21:28
 # @E-mail: 18672750887@163.com
 """
 import numpy as np
 from SPFP import SPFPSolver
+import csv
 
 
 class LeducPokerSolver(SPFPSolver):
@@ -97,19 +98,19 @@ class LeducPokerSolver(SPFPSolver):
 
 
 if __name__ == '__main__':
-    test_list = [
-        ['Leduc_Poker', {}],
-    ]
-    for i_list in test_list:
-        np.set_printoptions(precision=6, suppress=True)
-        tmp = LeducPokerSolver(3, i_list[0], i_list[1])
-        tmp.generate_tree()
-        tmp.show_tree()
-        # tmp.train(5000, 10000, 200)
-        # tmp.show_tree()
-        # print(tmp.tree_root_node.action_list)
-        # print(tmp.tree_root_node.action_policy)
 
-        # for _ in range(10000):
-    #     tmp.flow()
-    # tmp.show_tree()
+    loop = 0
+    while loop <= 10000:
+        np.set_printoptions(precision=6, suppress=True)
+        tmp = LeducPokerSolver(3, 'Leduc_Poker', {})
+        tmp.load_model('/Users/juqi/Desktop/居奇综合/all_of_code/SPFP/log_XFP/Leduc_Poker_2022_08_09_02_17_01/' + str(
+            loop) + '.pkl')
+        tmp.flow(is_train=False)
+        train_info = {'episode'     : loop, 'loss': np.sum(tmp.p0_loss + tmp.p1_loss) / 3,
+                      'subgame_loss': np.sum(tmp.p0_loss_subgame + tmp.p1_loss_subgame) / 3}
+        with open('/Users/juqi/Desktop/居奇综合/all_of_code/SPFP/log_XFP/result.csv', 'a', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=train_info.keys())
+            if loop == 0:
+                writer.writeheader()
+            writer.writerow(train_info)
+        loop += 200

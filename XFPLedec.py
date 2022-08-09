@@ -4,10 +4,10 @@
 # @E-mail: 18672750887@163.com
 """
 import numpy as np
-from SPFP import SPFPSolver
+from XFP import XFPSolver
 
 
-class LeducPokerSolver(SPFPSolver):
+class LeducPokerSolver(XFPSolver):
     def __int__(self, prior_state, game_name, prior_preference):
         super(LeducPokerSolver, self).__init__(prior_state, game_name, prior_preference)
 
@@ -98,17 +98,16 @@ class LeducPokerSolver(SPFPSolver):
 
 if __name__ == '__main__':
     test_list = [
-        ['Leduc_Poker', {}],
+        ['Leduc_Poker', {}]
     ]
     for i_list in test_list:
         np.set_printoptions(precision=6, suppress=True)
         tmp = LeducPokerSolver(3, i_list[0], i_list[1])
         tmp.generate_tree()
+        tmp.train(10000, 200, 200)
         tmp.show_tree()
-        # tmp.train(5000, 10000, 200)
-        # tmp.show_tree()
-        # print(tmp.tree_root_node.action_list)
-        # print(tmp.tree_root_node.action_policy)
+        print(tmp.tree_root_node.action_list)
+        print(tmp.tree_root_node.action_policy)
 
         # for _ in range(10000):
     #     tmp.flow()

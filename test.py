@@ -75,7 +75,6 @@ if __name__ == '__main__':
         now_action = 0
         env.reset()
         for agent_name in env.agent_iter():
-
             observation, reward, done, info = env.last()
             # print_info(agent_name, observation, reward, done, info)
 
