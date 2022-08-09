@@ -14,7 +14,6 @@ from rlcard.utils import tournament
 def train(args):
     # Make environments, CFR only supports Leduc Holdem
     env = rlcard.make('leduc-holdem', config={'seed': 0, 'allow_step_back':True})
-    eval_env = rlcard.make('leduc-holdem', config={'seed': 0})
 
     # Initilize CFR Agent
     agent = CFRAgent(env, os.path.join(args.log_dir, 'cfr_model'))
@@ -26,8 +25,7 @@ def train(args):
         print('\rIteration {}'.format(episode), end='')
         # Evaluate the performance. Play with Random agents.
         if episode % args.evaluate_every == 0:
-            agent.save() # Save model
-
+            agent.save()  # Save model
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("CFR example in RLCard")

@@ -6,8 +6,20 @@
 
 from pettingzoo.classic import leduc_holdem_v3
 import numpy as np
-from FPSBLedec import FPSBSolver
-from FPSBLedec import Node
+from SPFP import SPFPSolver
+from SPFP import Node
+import pickle
+
+
+class CFRAgent_juqi(object):
+    def __int__(self, log_dir):
+        self.log_dir = log_dir
+        self.policy = pickle.load(self.log_dir)
+
+    def get_action(self, ob):
+        tmp_policy = self.policy[str(ob['observation'])]
+        this_time_policy = np.random.choice([0, 1, 2, 3], p=tmp_policy)
+        return this_time_policy
 
 
 def print_info(agent, observation, reward, done, info):
@@ -61,8 +73,12 @@ def get_table_card(tmp_ob):
 
 
 if __name__ == '__main__':
-    agent = FPSBSolver(3)
-    agent.load_model('/Users/juqi/Desktop/居奇综合/all_of_code/texas/log/Leduc_Poker_2022_07_27_20_09_31/10000.pkl')
+    spfp_agent = SPFPSolver(3, '', {})
+    spfp_agent.load_model(
+        '/Users/juqi/Desktop/居奇综合/all_of_code/SPFP/SPFP收敛log1/Leduc_Poker_2022_08_08_18_16_17/10000.pkl')
+    cfr_agent = CFRAgent_juqi(
+        '/Users/juqi/Desktop/居奇综合/all_of_code/SPFP/experiments/leduc_holdem_cfr_result/cfr_model/policy.pkl')
+
     env = leduc_holdem_v3.env()
     action_list = [1, 1, 3, 1, 3, 1, 3, 3]
 
@@ -71,7 +87,7 @@ if __name__ == '__main__':
     ans = 0
     for _ in range(1000):
         is_2 = False
-        work_tree = agent.tree_root_node
+        work_tree = spfp_agent.tree_root_node
         now_action = 0
         env.reset()
         for agent_name in env.agent_iter():
@@ -93,6 +109,7 @@ if __name__ == '__main__':
                 action = action_code[action1]
                 work_tree = work_tree.son[action1]
             else:
+                tmp_123 = cfr_agent.get_action(observation)
                 action = action_list[now_action]
                 work_tree = work_tree.son[action_decode[action]]
 
